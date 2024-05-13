@@ -2,7 +2,8 @@
     "name": "Runtime",
     "rootNamespace": "",
     "references": [
-        "VContainer"
+        "VContainer",
+        "UniTask"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
