@@ -5,9 +5,7 @@ namespace Code.Runtime.Infrastructure.Services
 {
     public class LoadSceneService : ILoadUnit<string>
     {
-        public UniTask Load(string name)
-        {
-            return SceneManager.LoadSceneAsync(name).ToUniTask();
-        }
+        public UniTask Load(string name) => 
+            SceneManager.LoadSceneAsync(name).ToUniTask();
     }
 }

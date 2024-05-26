@@ -16,6 +16,7 @@ namespace Code.Runtime.Infrastructure.Scopes
         private void RegisterServices(IContainerBuilder builder)
         {
             builder.Register<ILoadingService, LoadingService>(Lifetime.Singleton);
+            builder.Register<LoadSceneService>(Lifetime.Singleton);
         }
 
         private void RegisterBootEntryPoint(IContainerBuilder builder) => 

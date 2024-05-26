@@ -8,7 +8,7 @@ namespace Code.Runtime.Infrastructure.Services
 {
     public class LoadingService : ILoadingService
     {
-        private Stopwatch _watch;
+        private readonly Stopwatch _watch = new Stopwatch();
 
         public async UniTask Load(ILoadUnit loadUnit, bool skipExceptionThrow = false)
         {
