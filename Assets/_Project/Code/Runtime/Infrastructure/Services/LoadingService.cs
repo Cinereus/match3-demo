@@ -6,7 +6,7 @@ using Debug = UnityEngine.Debug;
 
 namespace Code.Runtime.Infrastructure.Services
 {
-    public class LoadingService : ILoadingService
+    public class LoadingService
     {
         private readonly Stopwatch _watch = new Stopwatch();
 

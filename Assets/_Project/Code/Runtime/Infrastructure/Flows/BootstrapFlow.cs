@@ -5,10 +5,10 @@ namespace Code.Runtime.Infrastructure.Flows
 {
     public class BootstrapFlow : IStartable
     {
-        private readonly ILoadingService _loadingService;
+        private readonly LoadingService _loadingService;
         private readonly LoadSceneService _loadSceneService;
 
-        public BootstrapFlow(ILoadingService loadingService, LoadSceneService loadSceneService)
+        public BootstrapFlow(LoadingService loadingService, LoadSceneService loadSceneService)
         {
             _loadingService = loadingService;
             _loadSceneService = loadSceneService;
