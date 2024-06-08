@@ -1,6 +1,8 @@
 using Code.Runtime.Infrastructure.Services;
+using Code.Runtime.Logic.Match3;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
+using Object = UnityEngine.Object;
 
 namespace Code.Runtime.Infrastructure.Factories
 {
@@ -18,38 +20,43 @@ namespace Code.Runtime.Infrastructure.Factories
             return UniTask.CompletedTask;
         }
 
-        public GameObject CreateShape(Vector3 position, int spriteIndex)
+        public GameObject CreateShape(Vector3 position, Match3ShapeType type)
         {
             GameObject shape = Object.Instantiate(_gridShapePrefab, position, Quaternion.identity);
-            var shapeRenderer = shape.GetComponent<SpriteRenderer>();
+            var shapeView = shape.GetComponent<Match3ShapeView>();
             
             // test generation
-            Color targetColor = Color.white;
-            switch (spriteIndex)
+            switch (type)
             {
-                case 0:
-                    targetColor = Color.grey;
+                case Match3ShapeType.A:
+                    shapeView.type = Match3ShapeType.A;
+                    shapeView.color = Color.grey;
                     break;
-                case 1:
-                    targetColor = Color.cyan;
+                case Match3ShapeType.B:
+                    shapeView.type = Match3ShapeType.B;
+                    shapeView.color = Color.cyan;
                     break;
-                case 2:
-                    targetColor = Color.yellow;
+                case Match3ShapeType.C:
+                    shapeView.type = Match3ShapeType.C;
+                    shapeView.color = Color.yellow;
                     break;
-                case 3:
-                    targetColor = Color.red;
+                case Match3ShapeType.D:
+                    shapeView.type = Match3ShapeType.D;
+                    shapeView.color = Color.red;
                     break;
-                case 4:
-                    targetColor = Color.green;
+                case Match3ShapeType.E:
+                    shapeView.type = Match3ShapeType.E;
+                    shapeView.color = Color.green;
                     break;
-                case 5:
-                    targetColor = Color.blue;
+                case Match3ShapeType.F:
+                    shapeView.type = Match3ShapeType.F;
+                    shapeView.color = Color.blue;
                     break;
-                case 6:
-                    targetColor = Color.magenta;
+                case Match3ShapeType.G:
+                    shapeView.type = Match3ShapeType.G;
+                    shapeView.color = Color.magenta;
                     break;
             }
-            shapeRenderer.color = targetColor;
             return shape;
         }
 

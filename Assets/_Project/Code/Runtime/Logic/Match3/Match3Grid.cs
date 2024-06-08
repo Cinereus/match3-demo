@@ -1,50 +1,42 @@
-using Code.Runtime.Infrastructure.Factories;
-using Code.Runtime.Infrastructure.Services;
-using Cysharp.Threading.Tasks;
 using UnityEngine;
-using Random = UnityEngine.Random;
 
 namespace Code.Runtime.Logic.Match3
 {
-    public struct Match3Grid : ILoadUnit<Transform>
+    public struct Match3Grid<T>
     {
-        private readonly Match3Slot[,] _slots;
-        private readonly Match3ShapeView[,] _shapeViews;
-        private readonly Match3Factory _factory;
-        
-        // todo move to config
-        private const int LENGTH = 12;
-
-        public Match3Grid(Match3Factory factory)
+        public T this[int x, int y]
         {
-            _slots = new Match3Slot[LENGTH, LENGTH];
-            _shapeViews = new Match3ShapeView[LENGTH, LENGTH];
-            _factory = factory;
+            get => _cells[x, y];
+            set => _cells[x, y] = value;
         }
 
-        public UniTask Load(Transform spawnPoint)
+        public readonly Vector2Int size => new(_cells.GetLength(0), _cells.GetLength(1));
+
+        private readonly T[,] _cells;
+        
+        public Match3Grid(T [,] cells)
         {
-            const int HALF = 2;
-            const float SPACING = 1.2f;
-            
-            float elementSize = _factory.gridSlotPrefab.GetComponent<SpriteRenderer>().bounds.size.x;
-            float hOffset = (LENGTH - elementSize) * SPACING / HALF;
-            float vOffset = (LENGTH - elementSize) * SPACING / HALF;
-            
-            for (int i = 0; i < LENGTH; i++)
+            _cells = cells;
+        }
+
+        public bool IsValid(Vector2Int coordinates) => 
+            0 <= coordinates.x && coordinates.x < size.x && 0 <= coordinates.y && coordinates.y < size.y;
+        
+        public void Swap(Vector2Int a, Vector2Int b)
+        {
+            string err = $"[{nameof(Match3Grid<T>)}] Swap failed, index \"[index]\" less than zero or more than grid size!";
+            if (IsValid(a) == false)
             {
-                for (int j = 0; j < LENGTH; j++)
-                {
-                    var cellPos = spawnPoint.position;
-                    cellPos.x += i * SPACING - hOffset;
-                    cellPos.y += j * SPACING - vOffset;
-                    _slots[i, j] = _factory.CreateGridSlot(cellPos).GetComponent<Match3Slot>();
-                    _shapeViews[i, j] = _factory.CreateShape(cellPos, Random.Range(0, 7))
-                        .GetComponent<Match3ShapeView>();
-                }
+                Debug.LogError(err.Replace("[index]", a.ToString()));
+                return;
             }
-            
-            return UniTask.CompletedTask;
+            if (IsValid(b) == false)
+            {
+                Debug.LogError(err.Replace("[index]", b.ToString()));
+                return;
+            }
+
+            (this[a.x, a.y], this[b.x , b.y]) = (this[b.x, b.y], this[a.x, a.y]);
         }
     }
 }

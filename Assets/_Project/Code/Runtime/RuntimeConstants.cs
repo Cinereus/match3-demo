@@ -12,5 +12,10 @@
             public const string MATCH3_GRID_SLOT = "Prefabs/Match3/GridSlot";
             public const string MATCH3_GRID_SHAPE = "Prefabs/Match3/GridShape";
         }
+
+        public static class Test
+        {
+            public const int GRID_LENGTH = 12;
+        }
     }
 }
