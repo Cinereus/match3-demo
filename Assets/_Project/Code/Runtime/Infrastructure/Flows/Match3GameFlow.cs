@@ -1,5 +1,7 @@
 ﻿using Code.Runtime.Infrastructure.Factories;
-using Code.Runtime.Logic.Match3;
+using Code.Runtime.Infrastructure.Services;
+using Code.Runtime.Match3;
+using Code.Runtime.Match3.Services;
 using UnityEngine;
 using VContainer.Unity;
 
@@ -7,28 +9,31 @@ namespace Code.Runtime.Infrastructure.Flows
 {
     public class Match3GameFlow : IStartable
     {
+        private readonly Camera _camera;
         private readonly Transform _spawnPoint;
         private readonly Match3Factory _factory;
-        private readonly Match3GameLoop _gameLoop;
-        private readonly Match3GridState _gridState;
+        private readonly GameMoveService _gameMoveService;
+        private readonly Match3Game _match3Game;
         private readonly Match3GridView _gridView;
+        private readonly LoadingService _loadingService;
 
-        public Match3GameFlow(Transform spawnPoint, Match3Factory factory, Match3GameLoop gameLoop,
-            Match3GridState match3State, Match3GridView gridView)
+        public Match3GameFlow(LoadingService loadingService, Transform spawnPoint, Match3Factory factory,
+            Match3Game match3Game, Match3GridView gridView, GameMoveService gameMoveService)
         {
+            _loadingService = loadingService;
             _spawnPoint = spawnPoint;
             _factory = factory;
-            _gameLoop = gameLoop;
-            _gridState = match3State;
+            _match3Game = match3Game;
             _gridView = gridView;
+            _gameMoveService = gameMoveService;
         }
 
         public async void Start()
         {
-            await _factory.Load();
-            await _gridState.Load();
-            await _gridView.Load(_spawnPoint.position);
-            await _gameLoop.Load();
+            await _loadingService.Load(_factory);
+            await _loadingService.Load(_gridView, _spawnPoint.position);
+            await _loadingService.Load(_match3Game, Camera.main);
+            await _loadingService.Load(_gameMoveService,  _gridView.positions[0, 0]);
         }
     }
 }

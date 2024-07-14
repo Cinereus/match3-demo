@@ -57,7 +57,7 @@ namespace Code.Runtime.Infrastructure.Services
         private void OnLoadingBegin(string loadUnitName)
         {
             _watch.Restart();
-            Debug.Log(loadUnitName + "loading is started");
+            Debug.Log(loadUnitName + " loading is started");
         }
 
         private async UniTask OnLoadingFinish(string unitName, bool isError)

@@ -15,7 +15,8 @@
 
         public static class Test
         {
-            public const int GRID_LENGTH = 12;
+            public const int GRID_SIZE = 12;
+            public const int HINT_TIME_DELAY = 2; // Milliseconds
         }
     }
 }

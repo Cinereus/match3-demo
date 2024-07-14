@@ -7,7 +7,7 @@ namespace Code.Runtime.Infrastructure.Services
         UniTask Load();
     }
     
-    public interface ILoadUnit<TParam>
+    public interface ILoadUnit<in TParam>
     {
         UniTask Load(TParam param);
     }

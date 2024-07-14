@@ -3,7 +3,9 @@
     "rootNamespace": "",
     "references": [
         "VContainer",
-        "UniTask"
+        "UniTask",
+        "UniTask.DOTween",
+        "Match3"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
