@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Code.Match3;
 using Code.Match3.Services;
@@ -7,15 +8,15 @@ using Cysharp.Threading.Tasks;
 
 namespace Code.Runtime.Match3
 {
-    public class Match3Game : ILoadUnit
+    public class Match3Game : ILoadUnit, IDisposable
     {
         private readonly IMatch3GridView _gridView;
         private readonly GameMoveService _gameMoveService;
         private readonly FindMatchService _findMatchService;
         private readonly ShapesFallService _shapesFallService;
         private readonly MatchPredictionService _matchPredictService;
-        private readonly BonusCreateProcessService _bonusGenService;
-        private readonly ShapeStatesCreationService _shapeStatesGenService;
+        private readonly BonusCreateProcessService _bonusCreateService;
+        private readonly ShapeStatesCreationService _shapeStatesCreateService;
         private readonly ShapesDestructProcessService _shapesDestroyService;
         private readonly List<ShapePos> _matchedPosesBuffer = new List<ShapePos>();
         private readonly List<ShapeFallInfo> _fallInfoBuffer = new List<ShapeFallInfo>();
@@ -28,30 +29,38 @@ namespace Code.Runtime.Match3
         private Match3Grid<ShapeInfo> _gridState;
 
         public Match3Game(FindMatchService findMatchService, ShapesFallService shapesFallService,
-            ShapesDestructProcessService shapesDestroyService, ShapeStatesCreationService shapeStatesGenService,
-            GameMoveService gameMoveService, BonusCreateProcessService bonusGenService,
+            ShapesDestructProcessService shapesDestroyService, ShapeStatesCreationService shapeStatesCreateService,
+            GameMoveService gameMoveService, BonusCreateProcessService bonusCreateService,
             MatchPredictionService matchPredictService, IMatch3GridView gridView)
         {
             _gridView = gridView;
-            _bonusGenService = bonusGenService;
+            _bonusCreateService = bonusCreateService;
             _gameMoveService = gameMoveService;
             _findMatchService = findMatchService;
             _shapesFallService = shapesFallService;
             _matchPredictService = matchPredictService;
             _shapesDestroyService = shapesDestroyService;
-            _shapeStatesGenService = shapeStatesGenService;
+            _shapeStatesCreateService = shapeStatesCreateService;
         }
 
         public UniTask Load()
         {
             int gridSize = RuntimeConstants.Test.GRID_SIZE;
             _gridState = new Match3Grid<ShapeInfo>(new ShapeInfo[gridSize, gridSize]);
-            _shapeStatesGenService.ConfigureNewGridState(ref _gridState);
+            _shapeStatesCreateService.ConfigureNewGridState(ref _gridState);
             _gridView.CreateStartState(_gridState);
-
-            // TODO add disposing
             _gameMoveService.onMove += OnMove;
+            
+            if (_matchPredictService.TryFindMatchPrediction(_gridState, out var matchPrediction))
+                _gridView.VisualizeMatchHint(matchPrediction, RuntimeConstants.Test.HINT_TIME_DELAY);
+            
             return UniTask.CompletedTask;
+        }
+        
+        public void Dispose()
+        { 
+            _gameMoveService.onMove -= OnMove;
+            _gridView.StopActiveTweens();
         }
 
         private async void OnMove(ShapePos from, ShapePos to)
@@ -93,7 +102,7 @@ namespace Code.Runtime.Match3
             }
             else
             {
-                _shapeStatesGenService.ConfigureNewGridState(ref _gridState);
+                _shapeStatesCreateService.ConfigureNewGridState(ref _gridState);
                 await _gridView.VisualizeGridReconfiguration(_gridState);
             }
 
@@ -171,7 +180,7 @@ namespace Code.Runtime.Match3
         private async UniTask ProcessShapeCreation()
         {
             _createInfoBuffer.Clear();
-            _shapeStatesGenService.CreateNewShapeStates(ref _gridState, _createInfoBuffer);
+            _shapeStatesCreateService.CreateNewShapeStates(ref _gridState, _createInfoBuffer);
             if (_createInfoBuffer.Count > 0)
             {
                 await _gridView.CreateNewShapeViews(_createInfoBuffer);
@@ -185,7 +194,7 @@ namespace Code.Runtime.Match3
                 return;
 
             _bonusGenInfoBuffer.Clear();
-            _bonusGenService.ProcessMatchBonusCreation(ref _gridState, bonusPos, matches, _bonusGenInfoBuffer);
+            _bonusCreateService.ProcessMatchBonusCreation(ref _gridState, bonusPos, matches, _bonusGenInfoBuffer);
             if (_bonusGenInfoBuffer.Count > 0)
             {
                 await _gridView.CreateMatchBonusShapeViews(_bonusGenInfoBuffer);

@@ -27,26 +27,25 @@ namespace Code.Runtime.Match3
         public UniTask Load(Vector3 spawnPoint)
         {
             const float SPACING = 1.2f;
-            int size = RuntimeConstants.Test.GRID_SIZE;
+            int gridSize = RuntimeConstants.Test.GRID_SIZE;
             centralPoint = spawnPoint;
 
-            _positions = new Vector3[size, size];
-            _shapes = new Match3Grid<Match3ShapeView>(new Match3ShapeView[size, size]);
+            _positions = new Vector3[gridSize, gridSize];
+            _shapes = new Match3Grid<Match3ShapeView>(new Match3ShapeView[gridSize, gridSize]);
             shapeSize = _match3Factory.shapeSize;
-            float hOffset = (size - shapeSize.x) / 2 * SPACING;
-            float vOffset = (size - shapeSize.y) / 2 * SPACING;
-            for (int i = 0; i < size; i++)
+            float hOffset = (gridSize - shapeSize.x) / 2 * SPACING;
+            float vOffset = (gridSize - shapeSize.y) / 2 * SPACING;
+            for (int x = 0; x < gridSize; x++)
             {
-                for (int j = 0; j < size; j++)
+                for (int y = 0; y < gridSize; y++)
                 {
                     Vector3 position = spawnPoint;
-                    position.x += i * SPACING - hOffset;
-                    position.y += j * SPACING - vOffset;
-                    _positions[i, j] = position;
+                    position.x += x * SPACING - hOffset;
+                    position.y += y * SPACING - vOffset;
+                    _positions[x, y] = position;
                     _match3Factory.CreateGridSlot(position);
                 }
             }
-
             return UniTask.CompletedTask;
         }
 
@@ -103,7 +102,6 @@ namespace Code.Runtime.Match3
                 var from = new ShapePos(fallInfos[i].x, fallInfos[i].fromY);
                 var to = new ShapePos(fallInfos[i].x, fallInfos[i].toY);
                 var dur = TEST_DURATION + fallenInSameColumn * BASE_FALL_DELAY_COEFF;
-                Debug.LogError($"FALL {from.x} {from.y}");
                 seq.Join(_shapes[from.x, from.y].MoveTo(_positions[to.x, to.y], dur));
                 seq.onComplete += () => _shapes.Swap(from, to);
             }
