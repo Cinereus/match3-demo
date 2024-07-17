@@ -2,48 +2,63 @@
 using Code.Match3;
 using Code.Runtime.Infrastructure.Factories;
 using Code.Runtime.Infrastructure.Services;
+using Code.Runtime.Infrastructure.StaticData;
 using Cysharp.Threading.Tasks;
 using DG.Tweening;
 using UnityEngine;
 
 namespace Code.Runtime.Match3
 {
-    public class Match3GridView : ILoadUnit<Vector3>, IMatch3GridView
-    {
+    public class Match3GridView : ILoadUnit<Match3GridView.Match3GridViewParams>, IMatch3GridView
+    { 
+        public readonly struct Match3GridViewParams
+        {
+            public readonly Transform parent;
+            public readonly Match3LevelConfig levelConfig;
+
+            public Match3GridViewParams(Transform parent, Match3LevelConfig levelConfig)
+            {
+                this.parent = parent;
+                this.levelConfig = levelConfig;
+            }
+        }
+        
         public Vector3[,] positions => _positions;
         public Vector2 shapeSize { get; private set; }
-        public Vector3 centralPoint { get; private set; }
-        
-        private readonly IMatch3Factory _match3Factory;
+        private readonly IMatch3Factory _factory;
+        private readonly IMatch3VFXFactory _vfxFactory;
         private Match3Grid<Match3ShapeView> _shapes;
         private Vector3[,] _positions;
+        private Transform _parent;
         private Tween _hintTween;
         
-        public Match3GridView(IMatch3Factory match3Factory)
+        public Match3GridView(IMatch3Factory factory, IMatch3VFXFactory vfxFactory)
         {
-            _match3Factory = match3Factory;
+            _factory = factory;
+            _vfxFactory = vfxFactory;
         }
 
-        public UniTask Load(Vector3 spawnPoint)
+        public UniTask Load(Match3GridViewParams gridViewParams)
         {
-            const float SPACING = 1.2f;
-            int gridSize = RuntimeConstants.Test.GRID_SIZE;
-            centralPoint = spawnPoint;
-
-            _positions = new Vector3[gridSize, gridSize];
-            _shapes = new Match3Grid<Match3ShapeView>(new Match3ShapeView[gridSize, gridSize]);
-            shapeSize = _match3Factory.shapeSize;
-            float hOffset = (gridSize - shapeSize.x) / 2 * SPACING;
-            float vOffset = (gridSize - shapeSize.y) / 2 * SPACING;
-            for (int x = 0; x < gridSize; x++)
+            float spacing = gridViewParams.levelConfig.tileSpacing;
+            int width = gridViewParams.levelConfig.gridWidth;
+            int height = gridViewParams.levelConfig.gridHeight;
+            
+            _parent = gridViewParams.parent;
+            _positions = new Vector3[width, height];
+            _shapes = new Match3Grid<Match3ShapeView>(new Match3ShapeView[width, height]);
+            shapeSize = _factory.shapeSize;
+            float hOffset = (width - shapeSize.x) / 2 * spacing;
+            float vOffset = (height - shapeSize.y) / 2 * spacing;
+            for (int x = 0; x < width; x++)
             {
-                for (int y = 0; y < gridSize; y++)
+                for (int y = 0; y < height; y++)
                 {
-                    Vector3 position = spawnPoint;
-                    position.x += x * SPACING - hOffset;
-                    position.y += y * SPACING - vOffset;
+                    Vector3 position = _parent.position;
+                    position.x += x * spacing - hOffset;
+                    position.y += y * spacing - vOffset;
                     _positions[x, y] = position;
-                    _match3Factory.CreateGridSlot(position);
+                    _factory.CreateGridSlot(position, _parent);
                 }
             }
             return UniTask.CompletedTask;
@@ -167,7 +182,7 @@ namespace Code.Runtime.Match3
             // TODO make more complex destruction visualization
             List<ShapePos> destroyList = new List<ShapePos>();
             foreach (var destroyInfo in destructionChain)
-            {
+            { 
                 destroyList.AddRange(destroyInfo.affectedShapes);
             }
             await VisualizeDestruction(destroyList);
@@ -180,13 +195,16 @@ namespace Code.Runtime.Match3
             {
                 if (_shapes[pos.x, pos.y] == null)
                     continue;
-
+                
+                var squeezeVfx = _vfxFactory.CreateSqueezeParticle(_positions[pos.x, pos.y]);
+                squeezeVfx.SetColor(_shapes[pos.x, pos.y].vfxColor);
                 seq.Join(_shapes[pos.x, pos.y].Disappear());
+                squeezeVfx.PlayOnce().Forget();
                 _shapes[pos.x, pos.y] = null;
             }
             await seq;
         }
-
+        
         public void VisualizeMatchHint(ShapeMatchPredictionInfo matchPrediction, float delay)
         {
             ShapePos from = matchPrediction.from;
@@ -205,31 +223,36 @@ namespace Code.Runtime.Match3
             {
                 for (int y = 0; y < gridState.sizeY; y++)
                 {
-                    var temp = new ShapePos(x, y);
-                    seq.Join(_shapes[x, y].MoveTo(centralPoint, 0.25f))
-                        .Join(_shapes[temp.x, temp.y].ChangeType(gridState[temp.x, temp.y].type));
+                    seq.Join(_shapes[x, x].MoveTo(_parent.position, 0.25f))
+                        .Join(_shapes[x, y].Disappear());
                 }
             }
-
             await seq;
+            
             seq = DOTween.Sequence();
             for (int x = 0; x < gridState.sizeX; x++)
             {
                 for (int y = 0; y < gridState.sizeY; y++)
                 {
-                    seq.Join(_shapes[x, y].MoveTo(_positions[x, y], 0.25f));
+                    _shapes[x, y] = _factory.CreateShape(_parent.position, gridState[x, y].type, _parent);
+                    seq.Join(_shapes[x, y].Appear())
+                        .Join(_shapes[x, y].MoveTo(_positions[x, y], 0.25f));
                 }
             }
             await seq;
         }
 
-        public async UniTask CreateColorBomb(ShapePos pos) => 
-            await _shapes[pos.x, pos.y].ChangeType(ShapeBonusType.COLOR);
+        public async UniTask CreateColorBomb(ShapePos pos)
+        {
+            await _shapes[pos.x, pos.y].Disappear();
+            _shapes[pos.x, pos.y] = _factory.CreateShape(_positions[pos.x, pos.y], ShapeBonusType.COLOR, _parent);
+            await _shapes[pos.x, pos.y].Appear();
+        }
 
         private Match3ShapeView CreateShape(ShapeType type, Vector3 spawnPoint) => 
-            _match3Factory.CreateShape(spawnPoint, type);
+            _factory.CreateShape(spawnPoint, type, _parent);
 
         private Match3ShapeView CreateShape(ShapeBonusType type, Vector3 spawnPoint) => 
-            _match3Factory.CreateShape(spawnPoint, type);
+            _factory.CreateShape(spawnPoint, type, _parent);
     }
 }

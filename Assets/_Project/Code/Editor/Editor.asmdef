@@ -2,7 +2,7 @@
     "name": "Editor",
     "rootNamespace": "",
     "references": [
-        "Runtime"
+        "GUID:88055acb5d997414faccf2e23bee5dc6"
     ],
     "includePlatforms": [
         "Editor",

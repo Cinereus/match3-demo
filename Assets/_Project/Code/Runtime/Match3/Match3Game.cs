@@ -3,12 +3,13 @@ using System.Collections.Generic;
 using Code.Match3;
 using Code.Match3.Services;
 using Code.Runtime.Infrastructure.Services;
+using Code.Runtime.Infrastructure.StaticData;
 using Code.Runtime.Match3.Services;
 using Cysharp.Threading.Tasks;
 
 namespace Code.Runtime.Match3
 {
-    public class Match3Game : ILoadUnit, IDisposable
+    public class Match3Game : ILoadUnit<Match3LevelConfig>, IDisposable
     {
         private readonly IMatch3GridView _gridView;
         private readonly GameMoveService _gameMoveService;
@@ -43,10 +44,9 @@ namespace Code.Runtime.Match3
             _shapeStatesCreateService = shapeStatesCreateService;
         }
 
-        public UniTask Load()
+        public UniTask Load(Match3LevelConfig levelConfig)
         {
-            int gridSize = RuntimeConstants.Test.GRID_SIZE;
-            _gridState = new Match3Grid<ShapeInfo>(new ShapeInfo[gridSize, gridSize]);
+            _gridState = new Match3Grid<ShapeInfo>(new ShapeInfo[levelConfig.gridWidth, levelConfig.gridHeight]);
             _shapeStatesCreateService.ConfigureNewGridState(ref _gridState);
             _gridView.CreateStartState(_gridState);
             _gameMoveService.onMove += OnMove;

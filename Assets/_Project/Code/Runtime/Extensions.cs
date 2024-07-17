@@ -10,10 +10,8 @@ namespace Code.Runtime
             var elementHalfSize = 0.5f;
             distancePoint.x -= elementHalfSize;
             distancePoint.y -= elementHalfSize;
-            Vector3 worldPos =
-                camera.ScreenToWorldPoint(new Vector3(screenPosition.x, screenPosition.y,
-                    -camera.transform.position.z));
-            
+            Vector3 worldPos = camera.ScreenToWorldPoint(new Vector3(screenPosition.x, screenPosition.y,
+                distancePoint.z-camera.transform.position.z));
             Vector3 distance = worldPos - distancePoint;
             return new ShapePos(Mathf.FloorToInt(distance.x / 1.2f), Mathf.FloorToInt(distance.y / 1.2f));
         }

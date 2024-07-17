@@ -4,9 +4,15 @@ using Random = System.Random;
 namespace Code.Match3.Services
 {
     public class ShapeStatesCreationService
-    { 
+    {
+        private readonly int _maxShapeTypesCount;
         private readonly Random _rand = new Random();
         
+        public ShapeStatesCreationService(int maxShapeTypesCount)
+        {
+            _maxShapeTypesCount = maxShapeTypesCount;
+        }
+
         public void ConfigureNewGridState(ref Match3Grid<ShapeInfo> gridState)
         {
             for (int x = 0; x < gridState.sizeX; x++)
@@ -29,9 +35,7 @@ namespace Code.Match3.Services
                         possibleMatchCount++;
                     }
                     
-                    int randMax = typeof(ShapeType).GetEnumValues().Length;
-                    ShapeType newShapeType = (ShapeType) _rand.Next(1, randMax - possibleMatchCount);
-
+                    ShapeType newShapeType = (ShapeType) _rand.Next(1, _maxShapeTypesCount - possibleMatchCount);
                     if (newShapeType == hMatchValue)
                         newShapeType++;
 
@@ -51,9 +55,8 @@ namespace Code.Match3.Services
                 {
                     if (gridState[x, y].isDestroyed == false)
                         continue;
-
-                    int randMax = typeof(ShapeType).GetEnumValues().Length;
-                    gridState[x, y] = new ShapeInfo((ShapeType) _rand.Next(1, randMax));
+                    
+                    gridState[x, y] = new ShapeInfo((ShapeType) _rand.Next(1, _maxShapeTypesCount));
                     createInfos.Add(new ShapeCreateInfo(new ShapePos(x, y), gridState[x, y]));
                 }
             }

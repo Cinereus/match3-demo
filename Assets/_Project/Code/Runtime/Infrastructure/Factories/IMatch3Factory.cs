@@ -7,8 +7,8 @@ namespace Code.Runtime.Infrastructure.Factories
     public interface IMatch3Factory
     {
         public Vector2 shapeSize { get; }
-        Match3ShapeView CreateShape(Vector3 position, ShapeType type);
-        Match3ShapeView CreateShape(Vector3 position, ShapeBonusType bonusType);
-        GameObject CreateGridSlot(Vector3 position);
+        Match3ShapeView CreateShape(Vector3 position, ShapeType type, Transform parent);
+        Match3ShapeView CreateShape(Vector3 position, ShapeBonusType bonusType, Transform parent);
+        GameObject CreateGridSlot(Vector3 position, Transform parent);
     }
 }
