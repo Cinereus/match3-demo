@@ -49,19 +49,24 @@ namespace Code.Runtime.Infrastructure.Flows
         public async UniTask StartAsync(CancellationToken token)
         {
             _containers.gridContainer.position = _levelConfig.gridSpawnPosition;
-            var gridViewParams = new Match3GridView.Params(_containers.gridContainer, _levelConfig);
-            var match3FactoryParams = new Match3Factory.Params(_levelConfig.gridWidth * _levelConfig.gridHeight,
-                _levelConfig.goal.goalCount);
-            
             await _loadingService.Load(_assetProvider, _levelConfig, token);
             await _loadingService.Load(_vfxFactory, token);
+            
+            var match3FactoryParams = new Match3Factory.Params(_levelConfig.gridWidth * _levelConfig.gridHeight,
+                _levelConfig.goal.goalCount);
             await _loadingService.Load(_factory, match3FactoryParams, token);
+            
+            var gridViewParams = new Match3GridView.Params(_containers.gridContainer, _levelConfig);
             await _loadingService.Load(_gridView, gridViewParams, token);
-            await _loadingService.Load(_gameMoveService,  _gridView.positions[0, 0], token);
+            
+            var gameMoveParams = new GameMoveService.Params(_factory.shapeSize.y, _gridView.positions[0, 0]);
+            await _loadingService.Load(_gameMoveService, gameMoveParams, token);
+            
             await _loadingService.Load(_match3Game, _levelConfig, token);
             await _loadingService.Load(_goalService, _levelConfig, token);
             _factory.CreateEnvironment(_containers.environmentContainer);
             ShowUI();
+            
             await _loadingCurtain.Hide(token);
         }
 

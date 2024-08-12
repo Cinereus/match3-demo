@@ -5,9 +5,9 @@ namespace Code.Runtime
 {
     public static class Extensions
     {
-        public static ShapePos ScreenToShapePos(this Camera camera, Vector3 screenPosition, Vector3 distancePoint)
+        public static ShapePos ScreenToShapePos(this Camera camera, Vector3 screenPosition, Vector3 distancePoint, float shapeSize)
         {
-            var elementHalfSize = 0.5f;
+            var elementHalfSize = shapeSize / 2;
             distancePoint.x -= elementHalfSize;
             distancePoint.y -= elementHalfSize;
             Vector3 worldPos = camera.ScreenToWorldPoint(new Vector3(screenPosition.x, screenPosition.y,

@@ -31,7 +31,7 @@ MonoBehaviour:
     minGoalValue: 60
     maxGoalValue: 90
   gridSpawnPosition: {x: 0, y: -1.5, z: -21}
-  swapDuration: 0.1
+  swapDuration: 0.15
   bonusCreateShapesMoveDuration: 0.1
   fallDuration: 0.2
   baseFallDelayCoeff: 0.05

@@ -14,7 +14,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   levelType: 0
   tileSpacing: 1.05
-  columnTileSortedVisuality: 0
+  columnTileZSorting: 0
+  columnSortCoeff: 0.1
   gridWidth: 9
   gridHeight: 9
   shapesTypesCount: 7
@@ -30,3 +31,13 @@ MonoBehaviour:
     minGoalValue: 15
     maxGoalValue: 30
   gridSpawnPosition: {x: 0, y: -1.5, z: -11.5}
+  swapDuration: 0.2
+  bonusCreateShapesMoveDuration: 0.1
+  fallDuration: 0.2
+  baseFallDelayCoeff: 0.05
+  spawnShapesOffset: 2
+  matchHintDuration: 0.5
+  hintMoveOffset: 0.3
+  gridResetDuration: 0.25
+  shapeAppearDuration: 0.2
+  shapeDisappearDuration: 0.1

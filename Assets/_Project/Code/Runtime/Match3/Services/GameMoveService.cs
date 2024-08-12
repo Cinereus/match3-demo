@@ -7,13 +7,26 @@ using UnityEngine;
 
 namespace Code.Runtime.Match3.Services
 {
-    public class GameMoveService : ILoadUnit<Vector3>, IDisposable
+    public class GameMoveService : ILoadUnit<GameMoveService.Params>, IDisposable
     {
+        public readonly struct Params
+        {
+            public readonly float shapeSize;
+            public readonly Vector3 distancePoint;
+
+            public Params(float shapeSize, Vector3 distancePoint)
+            {
+                this.shapeSize = shapeSize;
+                this.distancePoint = distancePoint;
+            }
+        }
+        
         public event Action<ShapePos, ShapePos> onMove;
         
         private readonly InputService _inputService;
-        
+
         private Camera _camera;
+        private float _shapeSize;
         private Vector3 _distancePoint;
         private ShapePos _startDragPosition;
 
@@ -22,10 +35,11 @@ namespace Code.Runtime.Match3.Services
             _inputService = inputService;
         }
         
-        public UniTask Load(Vector3 distancePoint, CancellationToken token)
+        public UniTask Load(Params param, CancellationToken token)
         {
             _camera = Camera.main;
-            _distancePoint = distancePoint;
+            _shapeSize = param.shapeSize;
+            _distancePoint = param.distancePoint;
             _inputService.onBeginDrag += OnBeginDrag;
             _inputService.onDrag += OnDrag;
             return UniTask.CompletedTask;
@@ -42,7 +56,7 @@ namespace Code.Runtime.Match3.Services
             if (_camera == null)
                 return;
             
-            _startDragPosition = _camera.ScreenToShapePos(position, _distancePoint);
+            _startDragPosition = _camera.ScreenToShapePos(position, _distancePoint, _shapeSize);
         }
 
         private void OnDrag(Vector2 position)
@@ -51,7 +65,7 @@ namespace Code.Runtime.Match3.Services
                 return;
             
             var dragThreshold = 0.8f;
-            ShapePos dragPos = _camera.ScreenToShapePos(position, _distancePoint);
+            ShapePos dragPos = _camera.ScreenToShapePos(position, _distancePoint, _shapeSize);
             ShapePos dragDistance = dragPos - _startDragPosition;
             ShapePos targetPos = _startDragPosition + dragDistance 
                 switch 
