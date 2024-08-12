@@ -34,8 +34,9 @@ namespace Code.Match3.Services
                         vMatchValue = gridState[x, y - 1].type;
                         possibleMatchCount++;
                     }
-                    
-                    ShapeType newShapeType = (ShapeType) _rand.Next(1, _maxShapeTypesCount - possibleMatchCount);
+
+                    int max = _maxShapeTypesCount + 1 - possibleMatchCount;
+                    ShapeType newShapeType = (ShapeType) _rand.Next(1, max);
                     if (newShapeType == hMatchValue)
                         newShapeType++;
 
@@ -56,7 +57,8 @@ namespace Code.Match3.Services
                     if (gridState[x, y].isDestroyed == false)
                         continue;
                     
-                    gridState[x, y] = new ShapeInfo((ShapeType) _rand.Next(1, _maxShapeTypesCount));
+                    int max = _maxShapeTypesCount + 1;
+                    gridState[x, y] = new ShapeInfo((ShapeType) _rand.Next(1, max));
                     createInfos.Add(new ShapeCreateInfo(new ShapePos(x, y), gridState[x, y]));
                 }
             }

@@ -1,5 +1,5 @@
-using System;
 using System.Collections.Generic;
+using System.Linq;
 using Code.Match3;
 using UnityEngine;
 
@@ -9,34 +9,12 @@ namespace Code.Runtime.Infrastructure.StaticData
     public class Match3ShapeViewsConfig : ScriptableObject
     {
         public List<Match3ShapeViewData> shapeViewData;
-        public List<Match3BonusShapeViewData> bonusShapeViewData;
-    }
-    
-    [Serializable]
-    public struct Match3ShapeViewData
-    {
-        public ShapeType type;
-        public Sprite sprite;
-        public Color vfxColor;
+        public List<Match3ShapeViewData> shapeBonusViewData;
 
-        public Match3ShapeViewData(ShapeType type, Sprite sprite, Color vfxColor)
-        {
-            this.type = type;
-            this.sprite = sprite;
-            this.vfxColor = vfxColor;
-        }
-    }
-
-    [Serializable]
-    public struct Match3BonusShapeViewData
-    {
-        public ShapeBonusType type;
-        public Sprite sprite;
-
-        public Match3BonusShapeViewData(ShapeBonusType type, Sprite sprite)
-        {
-            this.type = type;
-            this.sprite = sprite;
-        }
+        public Match3ShapeViewData GetViewData(ShapeType type) => 
+            shapeViewData.FirstOrDefault(b => b.type == type);
+        
+        public Match3ShapeViewData GetBonusViewData(ShapeBonusType type) => 
+            shapeBonusViewData.FirstOrDefault(b => b.bonusType == type);
     }
 }

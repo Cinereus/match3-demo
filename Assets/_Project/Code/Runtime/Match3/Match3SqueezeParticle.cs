@@ -1,11 +1,13 @@
 ﻿using System;
+using System.Threading;
+using Code.Runtime.Infrastructure.Factories;
 using Code.Runtime.Infrastructure.Pool;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 
 namespace Code.Runtime.Match3
 {
-    public class Match3SqueezeParticle : MonoBehaviour, IPoolable<Match3SqueezeParticle>
+    public class Match3SqueezeParticle : MonoBehaviour, IPoolable<Match3SqueezeParticle>, IMatch3Particle
     {
         [SerializeField]
         private ParticleSystem _blot;
@@ -13,7 +15,7 @@ namespace Code.Runtime.Match3
         [SerializeField]
         private ParticleSystem _drops;
 
-        public event Action<Match3SqueezeParticle> onReturnToPool;
+        public event Action<Match3SqueezeParticle> onReturnToPoolRequested;
 
         private ParticleSystem.MinMaxGradient _dropsDefaultColor;
         private ParticleSystem.MinMaxGradient _blotDefaultColor;
@@ -24,25 +26,39 @@ namespace Code.Runtime.Match3
             _blotDefaultColor = _blot.main.startColor;
         }
 
-        public async UniTaskVoid PlayOnce()
+        public void Initialize(Vector3 position, Color color)
         {
-            var blotMain = _blot.main;
-            var dropsMain = _drops.main;
-            blotMain.loop = false;
-            dropsMain.loop = false;
-            _blot.Play();
-            await UniTask.Delay((int) (blotMain.duration * 1000));
-            blotMain.startColor = _blotDefaultColor;
-            dropsMain.startColor = _dropsDefaultColor;
-            onReturnToPool?.Invoke(this);
+            transform.position = position;
+            SetColor(color);
         }
 
-        public void SetColor(Color color)
+        public async UniTaskVoid PlayOnce(CancellationToken token)
         {
-            var blotMain = _blot.main;
-            var dropsMain = _drops.main;
+            _blot.Play();
+            
+            if (token.IsCancellationRequested)
+                ReturnToPool();
+
+            const int SECS_MULTIPLIER = 1000;
+            await UniTask.Delay((int) (_blot.main.duration * SECS_MULTIPLIER), cancellationToken: token);
+            ReturnToPool();
+        }
+
+        private void SetColor(Color color)
+        {
+            ParticleSystem.MainModule blotMain = _blot.main;
+            ParticleSystem.MainModule dropsMain = _drops.main;
             blotMain.startColor = new ParticleSystem.MinMaxGradient(color);
             dropsMain.startColor = new ParticleSystem.MinMaxGradient(color);
+        }
+
+        private void ReturnToPool()
+        {
+            ParticleSystem.MainModule blotMain = _blot.main;
+            ParticleSystem.MainModule dropsMain = _drops.main;
+            blotMain.startColor = _blotDefaultColor;
+            dropsMain.startColor = _dropsDefaultColor;
+            onReturnToPoolRequested?.Invoke(this);
         }
     }
 }

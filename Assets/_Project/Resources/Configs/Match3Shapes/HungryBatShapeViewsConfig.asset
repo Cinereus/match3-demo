@@ -14,26 +14,46 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   shapeViewData:
   - type: 1
+    bonusType: 0
     sprite: {fileID: 21300000, guid: b7481a4c424715542a70ac1efc7468db, type: 3}
-    vfxColor: {r: 0.9725491, g: 0.1254902, b: 0.13333334, a: 1}
+    vfxColor: {r: 1, g: 0.8632076, b: 0.8632076, a: 1}
   - type: 2
+    bonusType: 0
     sprite: {fileID: 21300000, guid: a292bddf8693e00428dace4a7f770aa6, type: 3}
-    vfxColor: {r: 1, g: 0.86274517, b: 0.21960786, a: 1}
+    vfxColor: {r: 1, g: 0.93777853, b: 0.6462264, a: 1}
   - type: 3
+    bonusType: 0
     sprite: {fileID: 21300000, guid: 23c39604c54f9f944ac7791b186f3dce, type: 3}
-    vfxColor: {r: 0.19607845, g: 0.19215688, b: 0.7254902, a: 1}
+    vfxColor: {r: 0.25551462, g: 0.25, b: 1, a: 1}
   - type: 4
+    bonusType: 0
     sprite: {fileID: 21300000, guid: fbb6c45b2e0f5424cace793121f03e56, type: 3}
     vfxColor: {r: 0.7725491, g: 0.28235295, b: 0.9215687, a: 1}
   - type: 5
+    bonusType: 0
     sprite: {fileID: 21300000, guid: 5b0c287fddf11b24d910a6b285ee1807, type: 3}
     vfxColor: {r: 1, g: 0.40000004, b: 0, a: 1}
   - type: 6
+    bonusType: 0
     sprite: {fileID: 21300000, guid: 50dd2e8acaa7426438d693e39eb73026, type: 3}
-    vfxColor: {r: 0.60784316, g: 0.80392164, b: 0, a: 1}
+    vfxColor: {r: 0.9367234, g: 1, b: 0.740566, a: 1}
   - type: 7
+    bonusType: 0
     sprite: {fileID: 21300000, guid: 140169fe467b8b649aa2541e0c8d6c09, type: 3}
     vfxColor: {r: 0.9803922, g: 0.14901961, b: 0.3372549, a: 1}
+  shapeBonusViewData:
+  - type: 0
+    bonusType: 1
+    sprite: {fileID: 21300000, guid: 2be55834e2ff7b144a243413f2979787, type: 3}
+    vfxColor: {r: 0, g: 0, b: 0, a: 0}
+  - type: 0
+    bonusType: 2
+    sprite: {fileID: 21300000, guid: 01a34d9e0dade794188a273832564fb0, type: 3}
+    vfxColor: {r: 0, g: 0, b: 0, a: 0}
+  - type: 0
+    bonusType: 3
+    sprite: {fileID: 21300000, guid: c1d5a6c1ade19d340922e895b71ec629, type: 3}
+    vfxColor: {r: 0, g: 0, b: 0, a: 0}
   bonusShapeViewData:
   - type: 1
     sprite: {fileID: 21300000, guid: 2be55834e2ff7b144a243413f2979787, type: 3}

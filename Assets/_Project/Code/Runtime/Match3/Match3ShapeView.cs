@@ -11,43 +11,45 @@ namespace Code.Runtime.Match3
     {
         [SerializeField]
         private SpriteRenderer _renderer;
-        
-        public event Action<Match3ShapeView> onReturnToPool;
-        public Color vfxColor { get; private set; } = Color.white;
+
+        public event Action<Match3ShapeView> onReturnToPoolRequested;
+        public ShapeType type { get; private set; } = ShapeType.NONE;
+        public ShapeBonusType bonusType { get; private set; } = ShapeBonusType.NONE;
 
         public void Initialize(Match3ShapeViewData viewData, Vector3 position)
         {
-            vfxColor = viewData.vfxColor;
-            _renderer.sprite = viewData.sprite;
+            type = viewData.type;
+            bonusType = viewData.bonusType;
             transform.position = position;
-        }
-        
-        public void Initialize(Match3BonusShapeViewData viewData, Vector3 position)
-        {
-            vfxColor = Color.white;
             _renderer.sprite = viewData.sprite;
-            transform.position = position;
-        }
-        
-        public Tweener MoveTo(Vector3 point, float duration) =>
-            transform.DOMove(point, duration);
-        
-        public Sequence Disappear()
-        {
-            Sequence seq = DOTween.Sequence();
-            seq.Append(transform.DOPunchScale(Vector3.one * 0.5f, 0.1f));
-            seq.Append(transform.DOScale(0, 0.1f));
-            seq.onComplete += () => onReturnToPool?.Invoke(this);
-            return seq;
         }
 
-        public Sequence Appear()
+        public Tweener MoveTo(Vector3 point, float duration) => 
+            transform.DOMove(point, duration);
+        
+        public Sequence Appear(float duration)
         {
             Sequence seq = DOTween.Sequence();
             transform.localScale = Vector3.zero;
-            seq.Append(transform.DOScale(1, 0.02f));
-            seq.Append(transform.DOPunchScale(Vector3.one * 0.5f, 0.02f));
+            seq.Append(transform.DOScale(1, duration));
+            seq.Append(transform.DOPunchScale(Vector3.one * 0.5f, duration));
             return seq;
+        }
+        
+        public Sequence Disappear(float duration)
+        {
+            Sequence seq = DOTween.Sequence();
+            seq.Append(transform.DOScale(0.2f, duration));
+            seq.onComplete += ReturnToPool;
+            return seq;
+        }
+
+        private void ReturnToPool()
+        {
+            type = ShapeType.NONE;
+            bonusType = ShapeBonusType.NONE;
+            _renderer.sprite = null;
+            onReturnToPoolRequested?.Invoke(this);
         }
     }
 }

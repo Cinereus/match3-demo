@@ -1,4 +1,5 @@
 using System;
+using System.Threading;
 using Code.Match3;
 using Code.Runtime.Infrastructure.Services;
 using Cysharp.Threading.Tasks;
@@ -6,7 +7,7 @@ using UnityEngine;
 
 namespace Code.Runtime.Match3.Services
 {
-    public class GameMoveService : ILoadUnit<Vector3>
+    public class GameMoveService : ILoadUnit<Vector3>, IDisposable
     {
         public event Action<ShapePos, ShapePos> onMove;
         
@@ -21,7 +22,7 @@ namespace Code.Runtime.Match3.Services
             _inputService = inputService;
         }
         
-        public UniTask Load(Vector3 distancePoint)
+        public UniTask Load(Vector3 distancePoint, CancellationToken token)
         {
             _camera = Camera.main;
             _distancePoint = distancePoint;
@@ -30,24 +31,37 @@ namespace Code.Runtime.Match3.Services
             return UniTask.CompletedTask;
         }
 
+        public void Dispose()
+        { 
+            _inputService.onBeginDrag -= OnBeginDrag;
+            _inputService.onDrag -= OnDrag;
+        }
+
         private void OnBeginDrag(Vector2 position)
         {
+            if (_camera == null)
+                return;
+            
             _startDragPosition = _camera.ScreenToShapePos(position, _distancePoint);
         }
 
         private void OnDrag(Vector2 position)
         {
+            if (_camera == null)
+                return;
+            
             var dragThreshold = 0.8f;
             ShapePos dragPos = _camera.ScreenToShapePos(position, _distancePoint);
             ShapePos dragDistance = dragPos - _startDragPosition;
-            ShapePos targetPos = _startDragPosition + dragDistance switch
-            {
-                _ when dragDistance.x > dragThreshold => new ShapePos(1, 0),
-                _ when dragDistance.x < -dragThreshold => new ShapePos(-1, 0),
-                _ when dragDistance.y > dragThreshold => new ShapePos(0, 1),
-                _ when dragDistance.y < -dragThreshold => new ShapePos(0, -1),
-                _ => ShapePos.zero
-            };
+            ShapePos targetPos = _startDragPosition + dragDistance 
+                switch 
+                {
+                    _ when dragDistance.x > dragThreshold => new ShapePos(1, 0), 
+                    _ when dragDistance.x < -dragThreshold => new ShapePos(-1, 0), 
+                    _ when dragDistance.y > dragThreshold => new ShapePos(0, 1), 
+                    _ when dragDistance.y < -dragThreshold => new ShapePos(0, -1), 
+                    _ => ShapePos.zero
+                };
 
             if (targetPos == _startDragPosition || _startDragPosition == -ShapePos.one)
                 return;

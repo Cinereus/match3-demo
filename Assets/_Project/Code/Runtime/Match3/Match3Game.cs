@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Threading;
 using Code.Match3;
 using Code.Match3.Services;
 using Code.Runtime.Infrastructure.Services;
@@ -11,6 +12,9 @@ namespace Code.Runtime.Match3
 {
     public class Match3Game : ILoadUnit<Match3LevelConfig>, IDisposable
     {
+        public bool isMoveEnabled = true;
+        public event Action<int> onBonusUsed;
+        
         private readonly IMatch3GridView _gridView;
         private readonly GameMoveService _gameMoveService;
         private readonly FindMatchService _findMatchService;
@@ -23,11 +27,12 @@ namespace Code.Runtime.Match3
         private readonly List<ShapeFallInfo> _fallInfoBuffer = new List<ShapeFallInfo>();
         private readonly List<ShapeMatchInfo> _matchInfoBuffer = new List<ShapeMatchInfo>();
         private readonly List<ShapeCreateInfo> _createInfoBuffer = new List<ShapeCreateInfo>();
-        private readonly List<ShapeBonusProcessInfo> _bonusGenInfoBuffer = new List<ShapeBonusProcessInfo>();
+        private readonly List<ShapeBonusProcessInfo> _bonusCreateInfoBuffer = new List<ShapeBonusProcessInfo>();
         private readonly Stack<ShapeBonusProcessInfo> _bonusDestructBuffer = new Stack<ShapeBonusProcessInfo>();
-
-        private bool _isBusy;
+        
         private Match3Grid<ShapeInfo> _gridState;
+        private bool _isBusy;
+        private int _bonusUsedCount;
 
         public Match3Game(FindMatchService findMatchService, ShapesFallService shapesFallService,
             ShapesDestructProcessService shapesDestroyService, ShapeStatesCreationService shapeStatesCreateService,
@@ -44,8 +49,8 @@ namespace Code.Runtime.Match3
             _shapeStatesCreateService = shapeStatesCreateService;
         }
 
-        public UniTask Load(Match3LevelConfig levelConfig)
-        {
+        public UniTask Load(Match3LevelConfig levelConfig, CancellationToken token)
+        { 
             _gridState = new Match3Grid<ShapeInfo>(new ShapeInfo[levelConfig.gridWidth, levelConfig.gridHeight]);
             _shapeStatesCreateService.ConfigureNewGridState(ref _gridState);
             _gridView.CreateStartState(_gridState);
@@ -60,12 +65,11 @@ namespace Code.Runtime.Match3
         public void Dispose()
         { 
             _gameMoveService.onMove -= OnMove;
-            _gridView.StopActiveTweens();
         }
 
         private async void OnMove(ShapePos from, ShapePos to)
         {
-            if (_isBusy)
+            if (_isBusy || isMoveEnabled == false)
                 return;
 
             if (_gridState.IsValid(from) == false || _gridState.IsValid(to) == false)
@@ -106,6 +110,12 @@ namespace Code.Runtime.Match3
                 await _gridView.VisualizeGridReconfiguration(_gridState);
             }
 
+            if (_bonusCreateService.TryCreateColorBomb(ref _gridState, _bonusUsedCount, out ShapePos pos))
+            {
+                await _gridView.CreateColorBomb(pos);
+                _bonusUsedCount = 0;
+            }
+            
             _isBusy = false;
         }
 
@@ -144,11 +154,18 @@ namespace Code.Runtime.Match3
         private void ProcessMatchesDestruction(List<ShapeMatchInfo> matches, List<ShapePos> destroyedShapes)
         {
             foreach (var match in matches)
+            {
                 _shapesDestroyService.ProcessMatch(ref _gridState, match, destroyedShapes);
+            }
         }
 
-        private void ProcessBonusDestruction(ShapePos bonus, ShapeType target, Stack<ShapeBonusProcessInfo> chain) =>
+        private void ProcessBonusDestruction(ShapePos bonus, ShapeType target, Stack<ShapeBonusProcessInfo> chain)
+        {
+            if (_gridState[bonus.x, bonus.y].bonusType != ShapeBonusType.COLOR)
+                onBonusUsed?.Invoke(++_bonusUsedCount);
+            
             _shapesDestroyService.ProcessBonus(ref _gridState, bonus, target, chain);
+        }
 
         private async UniTask VisualizeDestruction(List<ShapePos> matchedShapes,
             Stack<ShapeBonusProcessInfo> destructionChain)
@@ -193,12 +210,12 @@ namespace Code.Runtime.Match3
             if (matches.Count == 0)
                 return;
 
-            _bonusGenInfoBuffer.Clear();
-            _bonusCreateService.ProcessMatchBonusCreation(ref _gridState, bonusPos, matches, _bonusGenInfoBuffer);
-            if (_bonusGenInfoBuffer.Count > 0)
+            _bonusCreateInfoBuffer.Clear();
+            _bonusCreateService.ProcessMatchBonusCreation(ref _gridState, bonusPos, matches, _bonusCreateInfoBuffer);
+            if (_bonusCreateInfoBuffer.Count > 0)
             {
-                await _gridView.CreateMatchBonusShapeViews(_bonusGenInfoBuffer);
-                _bonusGenInfoBuffer.Clear();
+                await _gridView.CreateMatchBonusShapeViews(_bonusCreateInfoBuffer);
+                _bonusCreateInfoBuffer.Clear();
             }
         }
     }

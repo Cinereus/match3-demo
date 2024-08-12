@@ -9,6 +9,9 @@ EditorBuildSettings:
     path: Assets/_Project/Scenes/Boot.unity
     guid: a2cb334f437e3144ba23fc315eb8b1e9
   - enabled: 1
+    path: Assets/_Project/Scenes/MainMenu.unity
+    guid: b99f7dc2b1509ec419e9bc61c3ba168a
+  - enabled: 1
     path: Assets/_Project/Scenes/Match3Game.unity
     guid: 4737af8640dc75f4c91a4bff1daa092e
   m_configObjects: {}

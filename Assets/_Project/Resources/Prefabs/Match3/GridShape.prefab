@@ -97,14 +97,4 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8add72aa3c9d42b3932932f2f4571b39, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _defaultSprite: {fileID: -2413806693520163455, guid: a86470a33a6bf42c4b3595704624658b, type: 3}
-  _crossSprite: {fileID: -5177388603050735206, guid: 8884154dfe85442a3a3578be807dbcdf, type: 3}
-  _bombSprite: {fileID: -2135585597343286014, guid: 5aa8b770bc43046bc8d993d0d5b7f4a5, type: 3}
-  _colorSprite: {fileID: 7482667652216324306, guid: 75f5f34dc1b5347e0b8351032682f224, type: 3}
   _renderer: {fileID: 4644045579436188043}
-  _customShapeColor: {r: 0.8588236, g: 0.5568628, b: 0.34901962, a: 1}
-  _bombColor: {r: 0.92549026, g: 0.52156866, b: 1, a: 1}
-  _crossColor: {r: 1, g: 0.49411768, b: 0.7803922, a: 1}
-  coloredBonusColor: {r: 0.6156863, g: 0.86274517, b: 0.04705883, a: 1}
-  type: 0
-  bonusType: 0

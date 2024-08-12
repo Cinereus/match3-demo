@@ -1,22 +1,21 @@
 ﻿using System.Collections.Generic;
 using Code.Match3;
 using Code.Match3.Services;
+using Code.Runtime.Infrastructure.StaticData;
 using Random = UnityEngine.Random;
 
 namespace Code.Runtime.Match3.Services
 {
     public class BonusCreateProcessService
     {
-        // TODO Move to config
-        private readonly int _crossTargetLength = 4;
-        private readonly int _bombTargetLength = 5;
-        private readonly int _colorTargetScore = 25;
-        //
+        private readonly Match3LevelConfig _levelConfig;
         private readonly ShapesDestructProcessService _shapesDestroyService;
         private readonly List<ShapeMatchInfo> _regularMatchesBuffer = new List<ShapeMatchInfo>();
 
-        public BonusCreateProcessService(ShapesDestructProcessService shapesDestroyService)
+        public BonusCreateProcessService(ShapesDestructProcessService shapesDestroyService,
+            Match3LevelConfig levelConfig)
         {
+            _levelConfig = levelConfig;
             _shapesDestroyService = shapesDestroyService;
         }
 
@@ -25,9 +24,16 @@ namespace Code.Runtime.Match3.Services
         {
             foreach (var match in matches)
             {
-                bool isCross = match.length == _crossTargetLength;
-                bool isBomb = match.length == _bombTargetLength;
-                if (!isCross && !isBomb)
+                bool isCross = match.length == _levelConfig.crossTargetLength;
+                bool isBomb = match.length == _levelConfig.bombTargetLength;
+                if ((!isCross && !isBomb))
+                {
+                    _regularMatchesBuffer.Add(match);
+                    continue;
+                }
+
+                if ((isBomb && _levelConfig.bonuses.Contains(ShapeBonusType.BOMB) == false) ||
+                    (isCross && _levelConfig.bonuses.Contains(ShapeBonusType.CROSS) == false))
                 {
                     _regularMatchesBuffer.Add(match);
                     continue;
@@ -61,14 +67,25 @@ namespace Code.Runtime.Match3.Services
             _regularMatchesBuffer.Clear();
         }
 
-        public bool TryCreateColorBomb(ref Match3Grid<ShapeInfo> gridState, out ShapePos pos)
+        public bool TryCreateColorBomb(ref Match3Grid<ShapeInfo> gridState, int bonusesUsed, out ShapePos pos)
         {
-            if (true) // debug
+            if (_levelConfig.bonuses.Contains(ShapeBonusType.COLOR) == false)
             {
-                pos = new ShapePos(Random.Range(0, gridState.sizeX), Random.Range(0, gridState.sizeY));
+                pos = default;
+                return false;
+            }
+            
+            if (bonusesUsed == _levelConfig.colorTargetBonusUse)
+            {
+                ShapePos newPos = new ShapePos(Random.Range(0, gridState.sizeX), Random.Range(0, gridState.sizeY));
+                pos = newPos;
                 gridState[pos.x, pos.y] = new ShapeInfo(gridState[pos.x, pos.y].type, ShapeBonusType.COLOR);
             }
-            return true;
+            else
+            {
+                pos = default;
+            }
+            return bonusesUsed == _levelConfig.colorTargetBonusUse;
         }
     }
 }

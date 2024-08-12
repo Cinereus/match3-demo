@@ -12,9 +12,21 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7280298669a84218b8ebd745b64be498, type: 3}
   m_Name: HungryBatLevelConfig
   m_EditorClassIdentifier: 
-  gridWidth: 10
-  gridHeight: 10
-  tileSpacing: 1.2
+  levelType: 0
+  tileSpacing: 1.05
+  columnTileSortedVisuality: 0
+  gridWidth: 9
+  gridHeight: 9
   shapesTypesCount: 7
-  bonuses: 010000000200000003000000
-  visualStyle: 0
+  crossTargetLength: 4
+  bombTargetLength: 5
+  colorTargetBonusUse: 4
+  bonuses: 010000000300000002000000
+  goal:
+    limit:
+      type: 0
+      count: 40
+    goalCount: 2
+    minGoalValue: 15
+    maxGoalValue: 30
+  gridSpawnPosition: {x: 0, y: -1.5, z: -11.5}

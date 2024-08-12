@@ -10,14 +10,14 @@ namespace Code.Runtime.Infrastructure.Services
     {
         private readonly Stopwatch _watch = new Stopwatch();
 
-        public async UniTask Load(ILoadUnit loadUnit, bool skipExceptionThrow = false)
+        public async UniTask Load(ILoadUnit loadUnit, CancellationToken token = default, bool skipExceptionThrow = false)
         {
             var isError = true;
             string unitName = loadUnit.GetType().Name;
 
             try {
                 OnLoadingBegin(unitName);
-                await loadUnit.Load();
+                await loadUnit.Load(token);
                 isError = false;
             }
             catch (Exception e)
@@ -28,18 +28,19 @@ namespace Code.Runtime.Infrastructure.Services
                     throw;
             }
             finally {
-                await OnLoadingFinish(unitName, isError);
+                await OnLoadingFinish(unitName, isError, token);
             }
         }
 
-        public async UniTask Load<TParam>(ILoadUnit<TParam> loadUnit, TParam param, bool skipExceptionThrow = false)
+        public async UniTask Load<TParam>(ILoadUnit<TParam> loadUnit, TParam param, CancellationToken token = default,
+            bool skipExceptionThrow = false)
         {
             var isError = true;
             string unitName = loadUnit.GetType().Name;
 
             try {
                 OnLoadingBegin(unitName);
-                await loadUnit.Load(param);
+                await loadUnit.Load(param, token);
                 isError = false;
             }
             catch (Exception e)
@@ -50,7 +51,7 @@ namespace Code.Runtime.Infrastructure.Services
                     throw;
             }
             finally {
-                await OnLoadingFinish(unitName, isError);
+                await OnLoadingFinish(unitName, isError, token);
             }
         }
 
@@ -60,7 +61,7 @@ namespace Code.Runtime.Infrastructure.Services
             Debug.Log(loadUnitName + " loading is started");
         }
 
-        private async UniTask OnLoadingFinish(string unitName, bool isError)
+        private async UniTask OnLoadingFinish(string unitName, bool isError, CancellationToken token)
         {
             _watch.Stop();
             Debug.Log($"{unitName} is {(isError ? "NOT" : "")} loaded with time {_watch.ElapsedMilliseconds}ms");
@@ -70,8 +71,12 @@ namespace Code.Runtime.Infrastructure.Services
 
             if (mainThreadId != currentThreadId) {
                 _watch.Restart();
+                
+                if (token.IsCancellationRequested)
+                    _watch.Stop();
+                
                 Debug.Log($"[THREAD] start switching from '{currentThreadId}' thread to main thread '{mainThreadId}'");
-                await UniTask.SwitchToMainThread();
+                await UniTask.SwitchToMainThread(cancellationToken: token);
                 _watch.Stop();
                 Debug.Log($"[THREAD] switch finished with time {_watch.ElapsedMilliseconds}");
             }

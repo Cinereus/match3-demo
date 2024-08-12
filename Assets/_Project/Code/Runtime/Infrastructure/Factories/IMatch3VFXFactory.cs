@@ -1,10 +1,11 @@
-using Code.Runtime.Match3;
+using Code.Match3;
+using Code.Runtime.Infrastructure.Services;
 using UnityEngine;
 
 namespace Code.Runtime.Infrastructure.Factories
 {
-    public interface IMatch3VFXFactory
+    public interface IMatch3VFXFactory : ILoadUnit
     {
-        Match3SqueezeParticle CreateSqueezeParticle(Vector3 position);
+        public IMatch3Particle CreateShapeDestroyParticle(ShapeType type, Vector3 position);
     }
 }
